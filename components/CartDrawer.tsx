@@ -149,6 +149,7 @@ function CartDrawerPanel({ id, onClose }: CartDrawerPanelProps) {
                         alt=""
                         width={48}
                         height={48}
+                        sizes="48px"
                         draggable={false}
                         className="h-full w-full max-w-none origin-center scale-[1.24] select-none object-cover"
                       />

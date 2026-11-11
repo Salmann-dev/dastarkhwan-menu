@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react"
+import Image from "next/image"
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
@@ -34,7 +35,6 @@ export type DishOrbitCarouselProps = {
   loop?: boolean
   /** Embedded display face (Outfit, OFL). Pass null to use the host's font. */
   fontSrc?: string | null
-  onPlay?: (dish: Dish, index: number) => void
   onOrder?: (dish: Dish, index: number) => void
   onChange?: (index: number) => void
   className?: string
@@ -157,7 +157,7 @@ const CSS =
   ".dsh-t1,.dsh-t2{display:block;white-space:nowrap;line-height:1;text-transform:uppercase;margin:0}" +
   ".dsh-t1{font-weight:200;letter-spacing:-.015em;margin-top:6px}" +
   ".dsh-t2{font-weight:800;letter-spacing:-.025em;margin-top:6px;color:color-mix(in oklab,var(--color-foreground) 86%,transparent)}" +
-  ".dsh-acts{position:absolute;left:396px;top:280px;display:flex;gap:44px;font-size:12.5px;font-weight:500}" +
+  ".dsh-acts{position:absolute;left:388px;top:280px;width:270px;display:flex;justify-content:center;font-size:12.5px;font-weight:500}" +
   ".dsh-acts .dsh-btn{display:flex;align-items:center;gap:9px;padding:4px 0}" +
   ".dsh-acts .dsh-ico{width:13px;height:13px}" +
   ".dsh-acts .dsh-fill{fill:currentColor;stroke:none}" +
@@ -209,7 +209,7 @@ const CSS =
   ".dsh-eye{font-size:11.5px;margin:0 0 2px}" +
   ".dsh-t1{font-size:clamp(24px,7.8vw,42px)!important;margin-top:4px}" +
   ".dsh-t2{font-size:clamp(28px,9.2vw,48px)!important;margin-top:2px}" +
-  ".dsh-acts{position:relative;left:auto;top:auto;margin-top:12px;gap:28px;justify-content:center}" +
+  ".dsh-acts{position:relative;left:auto;top:auto;width:100%;margin-top:12px;justify-content:center}" +
   ".dsh-acts .dsh-btn{padding:6px 4px}" +
   ".dsh-card{position:relative;left:auto;top:auto;width:100%;max-width:440px;margin-top:14px;padding:16px 18px 18px}" +
   ".dsh-tabs{margin-bottom:12px;padding:0 4px}" +
@@ -277,7 +277,6 @@ const Icon = {
   search: <svg className="dsh-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>,
   cart: <svg className="dsh-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="19.5" r="1.4" /><circle cx="17.5" cy="19.5" r="1.4" /><path d="M3 4.5h2.4l2.2 10.5a1.5 1.5 0 0 0 1.5 1.2h8.5a1.5 1.5 0 0 0 1.4-1.1l1.4-6.6H6.2" /></svg>,
   menu: <svg className="dsh-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h16M4 12h16M4 17.5h16" /></svg>,
-  play: <svg className="dsh-ico dsh-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5v17l14-8.5z" /></svg>,
   order: <svg className="dsh-ico dsh-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5 3 15h18zM3 18h18v2.5H3z" /></svg>,
   up: <svg className="dsh-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v10H3.5V10zM7 10l4-7c1.6 0 2.6 1.2 2.2 2.8L12.6 9H19a2 2 0 0 1 2 2.3l-1.3 7A2 2 0 0 1 17.7 20H7" /></svg>,
   down: <svg className="dsh-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 14V4h3.5v10zM17 14l-4 7c-1.6 0-2.6-1.2-2.2-2.8l.6-3.2H5a2 2 0 0 1-2-2.3l1.3-7A2 2 0 0 1 6.3 4H17" /></svg>,
@@ -290,7 +289,6 @@ export function DishOrbitCarousel({
   backdrop,
   loop = true,
   fontSrc = FONT_DATA,
-  onPlay,
   onOrder,
   onChange,
   className,
@@ -627,7 +625,7 @@ export function DishOrbitCarousel({
       <style>
         {(fontSrc ? "@font-face{font-family:" + FONT + ";src:url(" + fontSrc + ") format('woff2');font-weight:100 900;font-display:swap}" : "") + CSS}
       </style>
-      {backdrop ? <img className="dsh-bd" src={backdrop} alt="" width={1200} height={900} /> : null}
+      {backdrop ? <Image className="dsh-bd" src={backdrop} alt="" width={1200} height={900} unoptimized /> : null}
       {backdrop ? <div className="dsh-dim" /> : null}
       {backdrop ? <div className="dsh-wash" /> : null}
 
@@ -717,7 +715,15 @@ export function DishOrbitCarousel({
             <div key={d.id} ref={(el) => { orbits.current[i] = el }} className="dsh-orbit" aria-hidden={i !== index}>
               <span className="dsh-ring">
                 <span className="dsh-crop">
-                  <img src={d.image} alt={d.firstWord + " " + d.secondWord} width={245} height={245} draggable={false} />
+                  <Image
+                    src={d.image}
+                    alt={d.firstWord + " " + d.secondWord}
+                    width={245}
+                    height={245}
+                    sizes="(max-width: 767px) 236px, 392px"
+                    preload={i === 0}
+                    draggable={false}
+                  />
                 </span>
               </span>
             </div>
@@ -737,7 +743,6 @@ export function DishOrbitCarousel({
         </div>
 
         <div className="dsh-acts">
-          <button type="button" className="dsh-btn" onClick={() => dish && onPlay?.(dish, index)}>{Icon.play}Play video</button>
           <button
             ref={orderBtnRef}
             type="button"
@@ -808,7 +813,7 @@ export function DishOrbitCarousel({
                   <button type="button" className="dsh-btn" aria-current={i === index ? "true" : undefined} onClick={() => go(i)}>
                     <span className="dsh-ring">
                       <span className="dsh-crop">
-                        <img src={d.image} alt="" width={56} height={56} draggable={false} />
+                        <Image src={d.image} alt="" width={56} height={56} sizes="(max-width: 767px) 56px, 90px" draggable={false} />
                       </span>
                     </span>
                     <span className="dsh-th-lbl">{d.firstWord + " " + d.secondWord}</span>
@@ -883,7 +888,7 @@ export function DishOrbitCarousel({
                     >
                       <span className="dsh-ring">
                         <span className="dsh-crop">
-                          <img src={item.image} alt="" width={38} height={38} draggable={false} />
+                          <Image src={item.image} alt="" width={38} height={38} sizes="38px" draggable={false} />
                         </span>
                       </span>
                       <span className="dsh-srch-meta">

@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Desi Bites — Pakistani Food Menu
+
+An interactive, orbital dish showcase and demo ordering menu for **Desi Bites**, featuring classic Pakistani dishes with circular plate animations, live dish search, interactive Overview/Ingredients tabs, and a simulated shopping cart in PKR.
+
+---
+
+## Features
+
+- **Orbital Dish Showcase (`DishOrbitCarousel`)**: Smooth GSAP-powered orbital transitions rotating circular dish plates around a curved pastel accent swoosh.
+- **Multiple Navigation Modes**: Browse dishes using previous/next arrows, the clickable thumbnail strip, side pagination dots, keyboard arrow keys (`ArrowLeft` / `ArrowRight`), desktop scroll-pinning (`ScrollTrigger`), or horizontal touch swipes on mobile.
+- **Dish Details Card**: Toggle between **Overview** (rating, description, interactive Like / Not-for-me feedback) and **Ingredients** for each dish.
+- **Live Search Overlay**: Filter the 6 Pakistani menu items (`Chicken Biryani`, `Chicken Karahi`, `Beef Nihari`, `Chapli Kebab`, `Seekh Kebab`, `Beef Haleem`) by name and jump directly to any result.
+- **Slide-In Navigation Menu**: Framer Motion animated side drawer (`Menu`, `About`, `Contact`) with outside-click and `Esc` key dismissal.
+- **Order Modal & Cart Drawer**:
+  - Click **Order food** to open a responsive modal showing the selected dish image, name, chef, PKR price, `-/+` quantity selector, and calculated total.
+  - React Context cart state (`CartProvider` / `CartContext`) with a live item-count badge in the top bar.
+  - Slide-in **Cart Drawer** supporting quantity adjustments, item removal, total calculation in PKR, and a demo checkout flow (`"Thank you, order placed!"`).
+- **Responsive Layout**: Adapts automatically below `768px` into a vertical mobile stack with horizontally scrollable thumbnails, touch swipe gestures, and full-width modal/drawer sheets.
+- **SEO & Image Optimization**: Configured page metadata, Open Graph and Twitter card tags, custom SVG plate-and-fork favicon (`app/icon.svg`), dark `#0a0a0a` theme color, and `next/image` dish image optimization.
+
+---
+
+## Tech Stack
+
+- **Framework**: [Next.js](https://nextjs.org/) (`16.4.6`, App Router) & React (`19.3.0`)
+- **Language**: [TypeScript](https://www.typescriptlang.org/) (`^5`)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) (`4.3.3`) + custom CSS variables & container queries (`Outfit` Google Font)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/) (`^14.12.0`) & [GSAP](https://gsap.com/) (`^3.15.1` with `ScrollTrigger`)
+- **State Management**: React Context (`CartProvider` in `components/CartContext.tsx`)
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js and `npm`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation & Running Locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Install dependencies**:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   npm install
+   ```
 
-## Learn More
+2. **Start the development server**:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npm run dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Additional Scripts
 
-## Deploy on Vercel
+- `npm run build` — Create an optimized production build
+- `npm run start` — Start the production server after building
+- `npm run lint` — Run ESLint checks across the codebase
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Live Demo
+
+> **Live Demo URL:** _Coming soon — add your deployed Vercel / hosting URL here._
+>
+> - Production Link: `[Add live demo URL here](https://example.com)`
+
+---
+
+## Screenshots
+
+> _Placeholder — add desktop and mobile screenshots of the showcase, order modal, and cart drawer below (for example under `public/screenshots/` or attached media)._
+
+| View | Preview |
+| --- | --- |
+| Desktop Orbital Showcase | `![Desktop Showcase](path/to/desktop-screenshot.png)` |
+| Mobile Responsive Layout | `![Mobile Layout](path/to/mobile-screenshot.png)` |
+| Order Modal & Cart Drawer | `![Order & Cart](path/to/order-cart-screenshot.png)` |

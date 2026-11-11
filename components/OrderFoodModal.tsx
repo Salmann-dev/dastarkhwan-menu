@@ -85,6 +85,7 @@ function OrderFoodDialog({ dish, onClose, onAddToCart }: OrderFoodDialogProps) {
                 alt={fullName}
                 width={128}
                 height={128}
+                sizes="128px"
                 draggable={false}
                 className="h-full w-full max-w-none origin-center scale-[1.24] select-none object-cover"
               />
