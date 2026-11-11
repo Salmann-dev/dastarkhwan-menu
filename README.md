@@ -62,18 +62,8 @@ An interactive, orbital dish showcase and demo ordering menu for **Desi Bites**,
 
 ## Live Demo
 
-> **Live Demo URL:** _Coming soon — add your deployed Vercel / hosting URL here._
+> **Live Demo URL:**https://desibites-tan.vercel.app/
 >
-> - Production Link: `[Add live demo URL here](https://example.com)`
+Build By Salmann
 
 ---
-
-## Screenshots
-
-> _Placeholder — add desktop and mobile screenshots of the showcase, order modal, and cart drawer below (for example under `public/screenshots/` or attached media)._
-
-| View | Preview |
-| --- | --- |
-| Desktop Orbital Showcase | `![Desktop Showcase](path/to/desktop-screenshot.png)` |
-| Mobile Responsive Layout | `![Mobile Layout](path/to/mobile-screenshot.png)` |
-| Order Modal & Cart Drawer | `![Order & Cart](path/to/order-cart-screenshot.png)` |
