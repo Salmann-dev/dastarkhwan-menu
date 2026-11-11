@@ -4,6 +4,7 @@ export type Dish = {
   secondWord: string;
   rankLabel: string;
   rating: number;
+  price: number;
   chef: string;
   kitchen: string;
   description: string;
@@ -20,6 +21,7 @@ export const dishes: Dish[] = [
     secondWord: "BIRYANI",
     rankLabel: "#1 Most loved dish",
     rating: 4.9,
+    price: 650,
     likes: 128,
     chef: "Chef Minahil",
     kitchen: "Demo Kitchen One",
@@ -41,6 +43,7 @@ export const dishes: Dish[] = [
     secondWord: "KARAHI",
     rankLabel: "#2 Most loved dish",
     rating: 4.8,
+    price: 1450,
     likes: 112,
     chef: "Chef Salman",
     kitchen: "Demo Kitchen Two",
@@ -63,6 +66,7 @@ export const dishes: Dish[] = [
     secondWord: "NIHARI",
     rankLabel: "#3 Most loved dish",
     rating: 4.7,
+    price: 980,
     likes: 96,
     chef: "Chef Rameen",
     kitchen: "Demo Kitchen Three",
@@ -84,6 +88,7 @@ export const dishes: Dish[] = [
     secondWord: "KEBAB",
     rankLabel: "#4 Most loved dish",
     rating: 4.6,
+    price: 580,
     likes: 84,
     chef: "Chef Maryam",
     kitchen: "Demo Kitchen Four",
@@ -105,6 +110,7 @@ export const dishes: Dish[] = [
     secondWord: "KEBAB",
     rankLabel: "#5 Most loved dish",
     rating: 4.7,
+    price: 720,
     likes: 90,
     chef: "Chef Bilal",
     kitchen: "Demo Kitchen Five",
@@ -126,6 +132,7 @@ export const dishes: Dish[] = [
     secondWord: "HALEEM",
     rankLabel: "#6 Most loved dish",
     rating: 4.5,
+    price: 550,
     likes: 72,
     chef: "Chef Sana",
     kitchen: "Demo Kitchen Six",

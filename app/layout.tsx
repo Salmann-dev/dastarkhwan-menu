@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
+import { CartProvider } from "@/components/CartContext";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -21,7 +22,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${outfit.variable} antialiased`}>
-      <body className="min-h-screen font-sans">{children}</body>
+      <body className="min-h-screen font-sans">
+        <CartProvider>{children}</CartProvider>
+      </body>
     </html>
   );
 }

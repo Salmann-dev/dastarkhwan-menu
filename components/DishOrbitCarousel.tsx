@@ -5,6 +5,9 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { dishes as defaultDishes, type Dish } from "@/data/dishes"
+import { useCart } from "@/components/CartContext"
+import { OrderFoodModal } from "@/components/OrderFoodModal"
+import { CartDrawer } from "@/components/CartDrawer"
 
 export type { Dish }
 
@@ -128,9 +131,14 @@ const CSS =
   ".dsh-brand{position:absolute;left:76px;top:52px;height:36px;display:flex;align-items:center;gap:4px;font-size:17px;letter-spacing:-.02em;line-height:1;user-select:none}" +
   ".dsh-brand-light{font-weight:300}" +
   ".dsh-brand-bold{font-weight:800;color:color-mix(in oklab,var(--color-foreground) 86%,transparent)}" +
-  ".dsh-top{position:absolute;left:800px;top:52px;display:flex;gap:14px}" +
+  ".dsh-top{position:absolute;right:74px;top:52px;display:flex;gap:14px}" +
   ".dsh-top .dsh-btn{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;transition:background .2s}" +
   ".dsh-top .dsh-btn:hover{background:color-mix(in oklab,var(--color-foreground) 6%,transparent)}" +
+  ".dsh-cart-btn{position:relative}" +
+  ".dsh-cart-badge{position:absolute;top:1px;right:1px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;" +
+  "display:grid;place-items:center;font-size:10px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;" +
+  "background:var(--color-foreground);color:var(--color-background);transition:transform .2s,background .2s}" +
+  ".dsh-cart-badge[data-empty='true']{background:color-mix(in oklab,var(--color-foreground) 14%,transparent);color:var(--color-foreground)}" +
   ".dsh-pager{position:absolute;left:76px;top:172px;display:flex;flex-direction:column;align-items:center;gap:7px}" +
   ".dsh-dot{width:14px;height:10px;display:grid;place-items:center}" +
   ".dsh-dot i{display:block;width:3px;height:3px;border-radius:3px;background:var(--color-foreground);opacity:.45;transition:height .45s cubic-bezier(.3,.7,.2,1),opacity .3s}" +
@@ -189,23 +197,36 @@ const CSS =
   ".dsh-th .dsh-btn[aria-current] .dsh-ring{transform:scale(1.06)}" +
   ".dsh-th-lbl{font-size:10px;line-height:1.25;text-align:center;font-weight:500;color:color-mix(in oklab,var(--color-foreground) 78%,transparent);max-width:78px}" +
   ".dsh-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}" +
-  "@container (max-width:639px){" +
-  ".dsh-canvas{position:relative;left:auto;top:auto;width:100%;height:auto;transform:none;display:flex;flex-direction:column;align-items:center;padding:14px 16px 18px}" +
-  ".dsh-arc{width:200%;height:auto;left:-60%;top:-30px}" +
+  "@container (max-width:767px){" +
+  ".dsh-canvas{position:relative;left:auto;top:auto;width:100%;height:auto;transform:none;display:flex;flex-direction:column;align-items:center;padding:14px 16px 24px}" +
+  ".dsh-arc{width:145%;max-width:none;height:auto;left:4%;top:clamp(16px,5vw,44px)}" +
   ".dsh-brand{left:16px;top:14px}" +
-  ".dsh-top{position:relative;left:auto;top:auto;align-self:flex-end}" +
-  ".dsh-pager{left:14px;top:150px}" +
-  ".dsh-plates{position:relative;left:auto;top:auto;width:min(52vw,32svh);height:min(52vw,32svh);margin-top:0}" +
-  ".dsh-head{position:relative;left:auto;top:auto;width:100%;height:132px;margin-top:10px}" +
-  ".dsh-hd{text-align:center;transform:scale(.78);transform-origin:50% 0}" +
-  ".dsh-acts{position:relative;left:auto;top:auto;margin-top:4px}" +
-  ".dsh-card{position:relative;left:auto;top:auto;width:100%;max-width:420px;margin-top:12px}" +
-  // phone: the pinned stage has to fit one screen; the pager, swipes and scroll cover the strip
-  ".dsh-strip{display:none}" +
+  ".dsh-top{position:relative;left:auto;right:auto;top:auto;align-self:flex-end;gap:10px}" +
+  ".dsh-pager{left:14px;top:98px}" +
+  ".dsh-plates{position:relative;left:auto;top:auto;width:clamp(164px,48vw,236px);height:clamp(164px,48vw,236px);margin-top:8px}" +
+  ".dsh-head{position:relative;left:auto;top:auto;width:100%;height:auto;display:grid;margin-top:10px}" +
+  ".dsh-hd{position:relative;grid-area:1/1;text-align:center;transform:none}" +
+  ".dsh-eye{font-size:11.5px;margin:0 0 2px}" +
+  ".dsh-t1{font-size:clamp(24px,7.8vw,42px)!important;margin-top:4px}" +
+  ".dsh-t2{font-size:clamp(28px,9.2vw,48px)!important;margin-top:2px}" +
+  ".dsh-acts{position:relative;left:auto;top:auto;margin-top:12px;gap:28px;justify-content:center}" +
+  ".dsh-acts .dsh-btn{padding:6px 4px}" +
+  ".dsh-card{position:relative;left:auto;top:auto;width:100%;max-width:440px;margin-top:14px;padding:16px 18px 18px}" +
+  ".dsh-tabs{margin-bottom:12px;padding:0 4px}" +
+  ".dsh-rate{margin-bottom:10px}" +
+  ".dsh-strip{position:relative;left:auto;top:auto;width:100%;max-width:520px;height:auto;margin-top:16px;display:flex;align-items:center}" +
+  ".dsh-arrow{display:none}" +
+  ".dsh-win{width:100%;height:auto;flex:1;margin:0;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;touch-action:pan-x;scrollbar-width:none;padding:2px 4px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 4%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 4%,#000 94%,transparent)}" +
+  ".dsh-win::-webkit-scrollbar{display:none}" +
+  ".dsh-track{position:relative;left:auto;top:auto;display:flex;gap:8px;width:max-content;transform:none!important;transition:none}" +
+  ".dsh-th{width:88px;height:auto;flex:0 0 auto;padding-top:2px;scroll-snap-align:center}" +
+  ".dsh-th .dsh-btn{width:82px;height:106px;padding-top:7px;gap:6px}" +
   "}" +
   "@media (prefers-reduced-motion:reduce){.dsh-track,.dsh-dot,.dsh-dot i,.dsh-th .dsh-btn,.dsh-th .dsh-ring,.dsh-like{transition:none}}" +
-  ".dsh-ovl-bd{position:absolute;inset:0;z-index:30;background:color-mix(in oklab,var(--color-background) 28%,transparent);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}" +
-  ".dsh-srch-panel{position:absolute;top:max(20px,4svh);right:max(20px,4vw);z-index:31;width:min(360px,calc(100% - 32px));padding:14px;border-radius:20px;" +
+  ".dsh-ovl-bd{position:fixed;inset:0;z-index:30;background:color-mix(in oklab,var(--color-background) 28%,transparent);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}" +
+  ".dsh-ovl-bd,.dsh-ovl-bd *,.dsh-drw-bd,.dsh-drw-bd *{box-sizing:border-box}" +
+  ".dsh-ovl-bd,.dsh-drw-bd{font-family:" + FONT + ",var(--font-outfit),ui-sans-serif,system-ui,sans-serif;color:var(--color-foreground)}" +
+  ".dsh-srch-panel{position:fixed;top:max(20px,4dvh);right:max(20px,4vw);z-index:31;width:min(360px,calc(100% - 32px));padding:14px;border-radius:20px;" +
   "background:color-mix(in oklab,var(--color-background) 92%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);" +
   "border:1px solid color-mix(in oklab,var(--color-foreground) 10%,transparent);" +
   "box-shadow:0 1px 0 color-mix(in oklab,var(--color-foreground) 8%,transparent) inset,0 24px 48px -20px rgba(0,0,0,.28);overscroll-behavior:contain}" +
@@ -225,8 +246,8 @@ const CSS =
   ".dsh-srch-sub{display:block;font-size:10.5px;color:var(--color-muted-foreground);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
   ".dsh-srch-rate{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;flex:none}" +
   ".dsh-srch-empty{padding:18px 8px 12px;text-align:center;font-size:12.5px;color:var(--color-muted-foreground)}" +
-  ".dsh-drw-bd{position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.28);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);overscroll-behavior:contain}" +
-  ".dsh-drw{position:absolute;top:0;right:0;bottom:0;z-index:41;width:min(320px,84vw);padding:26px 24px;display:flex;flex-direction:column;" +
+  ".dsh-drw-bd{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.28);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);overscroll-behavior:contain}" +
+  ".dsh-drw{position:fixed;top:0;right:0;bottom:0;z-index:41;width:min(320px,84dvw);padding:26px 24px;display:flex;flex-direction:column;" +
   "background:color-mix(in oklab,var(--color-background) 94%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);" +
   "border-left:1px solid color-mix(in oklab,var(--color-foreground) 10%,transparent);box-shadow:-18px 0 44px -18px rgba(0,0,0,.3);overscroll-behavior:contain;overflow-y:auto}" +
   ".dsh-drw-hd{display:flex;align-items:center;justify-content:space-between;padding-bottom:20px;border-bottom:1px solid color-mix(in oklab,var(--color-foreground) 9%,transparent)}" +
@@ -240,7 +261,13 @@ const CSS =
   ".dsh-drw-link:hover,.dsh-drw-link[aria-current]{background:color-mix(in oklab,var(--color-foreground) 7%,transparent)}" +
   ".dsh-drw-info{margin-top:16px;padding:14px 16px;border-radius:14px;background:color-mix(in oklab,var(--color-foreground) 5%,transparent);font-size:12.5px;line-height:1.5;color:var(--color-muted-foreground)}" +
   ".dsh-drw-info strong{display:block;color:var(--color-foreground);font-weight:600;margin-bottom:4px}" +
-  ".dsh-drw-foot{margin-top:auto;padding-top:20px;font-size:11px;color:var(--color-muted-foreground)}"
+  ".dsh-drw-foot{margin-top:auto;padding-top:20px;font-size:11px;color:var(--color-muted-foreground)}" +
+  "@media (max-width:767px){" +
+  ".dsh-trk{height:auto!important;min-height:100dvh}" +
+  ".dsh-root{position:relative!important;height:auto!important;min-height:100dvh;overflow-x:clip!important;overflow-y:visible!important}" +
+  ".dsh-srch-panel{top:0;left:0;right:0;width:100%;max-height:100dvh;border-radius:0 0 20px 20px;border-top:0;border-left:0;border-right:0}" +
+  ".dsh-drw{width:100%;border-left:0}" +
+  "}"
 
 const HIDE_1 = "inset(0% 0% 0% 100%)" // thin line: wipes in from the right
 const HIDE_2 = "inset(0% 100% 0% 0%)" // heavy line: wipes in from the left
@@ -248,6 +275,7 @@ const SHOW = "inset(0% 0% 0% 0%)"
 
 const Icon = {
   search: <svg className="dsh-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>,
+  cart: <svg className="dsh-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="19.5" r="1.4" /><circle cx="17.5" cy="19.5" r="1.4" /><path d="M3 4.5h2.4l2.2 10.5a1.5 1.5 0 0 0 1.5 1.2h8.5a1.5 1.5 0 0 0 1.4-1.1l1.4-6.6H6.2" /></svg>,
   menu: <svg className="dsh-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h16M4 12h16M4 17.5h16" /></svg>,
   play: <svg className="dsh-ico dsh-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5v17l14-8.5z" /></svg>,
   order: <svg className="dsh-ico dsh-fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5 3 15h18zM3 18h18v2.5H3z" /></svg>,
@@ -268,6 +296,7 @@ export function DishOrbitCarousel({
   className,
 }: DishOrbitCarouselProps) {
   const n = dishes.length
+  const { totalItems, addItem } = useCart()
   const [index, setIndex] = useState(0)
   const [tab, setTab] = useState("overview")
   const [liked, setLiked] = useState({} as Record<number, boolean>)
@@ -276,21 +305,27 @@ export function DishOrbitCarousel({
   const [query, setQuery] = useState("")
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuSection, setMenuSection] = useState(null as "about" | "contact" | null)
+  const [orderDish, setOrderDish] = useState(null as Dish | null)
+  const [cartOpen, setCartOpen] = useState(false)
   const prefersReduced = useReducedMotion()
 
   const searchDialogId = useId()
   const menuDrawerId = useId()
+  const cartDrawerId = useId()
   const searchBtnRef = useRef(null as HTMLButtonElement | null)
+  const cartBtnRef = useRef(null as HTMLButtonElement | null)
   const menuBtnRef = useRef(null as HTMLButtonElement | null)
+  const orderBtnRef = useRef(null as HTMLButtonElement | null)
   const searchInputRef = useRef(null as HTMLInputElement | null)
   const drawerCloseRef = useRef(null as HTMLButtonElement | null)
   const overlayOpenRef = useRef(false)
   useEffect(() => {
-    overlayOpenRef.current = searchOpen || menuOpen
-  }, [searchOpen, menuOpen])
+    overlayOpenRef.current = searchOpen || menuOpen || orderDish !== null || cartOpen
+  }, [searchOpen, menuOpen, orderDish, cartOpen])
 
   const trackRef = useRef(null as HTMLDivElement | null)
   const rootRef = useRef(null as HTMLDivElement | null)
+  const winRef = useRef(null as HTMLDivElement | null)
   const stRef = useRef(null as ScrollTrigger | null)
   const segRef = useRef(0)
   const indexRef = useRef(0)
@@ -307,7 +342,7 @@ export function DishOrbitCarousel({
   const dirRef = useRef(1 as 1 | -1)
   const tlRef = useRef(null as gsap.core.Timeline | null)
   const reducedRef = useRef(false)
-  const swipe = useRef(null as { x: number; y: number } | null)
+  const swipe = useRef(null as { x: number; y: number; done: boolean } | null)
 
   // Fit the 960 x 520 design canvas to the root. Measured on resize only.
   useLayoutEffect(() => {
@@ -406,57 +441,74 @@ export function DishOrbitCarousel({
     onChangeRef.current?.(next)
   }
 
-  // The page scroll drives the dish: the stage pins, one stretch of scroll per dish, snapping between them.
+  // The page scroll drives the dish on tablet/desktop: the stage pins, one stretch of scroll per dish, snapping between them.
   const steps = scrollSteps(n, loop)
   useEffect(() => {
     const track = trackRef.current
     if (!track || steps < 1) return
-    const trigger = ScrollTrigger.create({
-      trigger: track,
-      start: "top top",
-      end: "bottom bottom",
-      snap: { snapTo: 1 / steps, duration: { min: 0.3, max: 0.8 }, delay: 0.08, ease: "power2.inOut" },
-      onUpdate: (self) => {
-        // Looping: the last stretch shows the first dish, so jump back to the top unseen.
-        if (loop && self.progress >= 1 && self.direction > 0) {
-          segRef.current = 0
-          self.scroll(self.start + 1)
-          select(0, 1)
-          return
-        }
-        const seg = Math.round(self.progress * steps)
-        if (seg === segRef.current) return
-        const dir = seg > segRef.current ? 1 : -1
-        segRef.current = seg
-        select(wrapIndex(seg, n), dir)
-      },
-    })
-    // At the very top no scroll is left to fire onUpdate, so scrolling up there wraps round to the last dish.
-    // Deferred a frame so the browser's own wheel scroll has landed first.
-    let raf = 0
-    const onWheel = (e: WheelEvent) => {
-      if (overlayOpenRef.current) return
-      const y = trigger.scroll()
-      if (!loop || e.deltaY >= 0 || y < trigger.start - 1 || y > trigger.start + 1) return
-      cancelAnimationFrame(raf)
-      raf = requestAnimationFrame(() => {
-        segRef.current = n - 1
-        trigger.scroll(trigger.start + ((trigger.end - trigger.start) * (n - 1)) / steps)
-        select(n - 1, -1)
+    const mm = gsap.matchMedia()
+    mm.add("(min-width: 768px)", () => {
+      const trigger = ScrollTrigger.create({
+        trigger: track,
+        start: "top top",
+        end: "bottom bottom",
+        snap: { snapTo: 1 / steps, duration: { min: 0.3, max: 0.8 }, delay: 0.08, ease: "power2.inOut" },
+        onUpdate: (self) => {
+          // Looping: the last stretch shows the first dish, so jump back to the top unseen.
+          if (loop && self.progress >= 1 && self.direction > 0) {
+            segRef.current = 0
+            self.scroll(self.start + 1)
+            select(0, 1)
+            return
+          }
+          const seg = Math.round(self.progress * steps)
+          if (seg === segRef.current) return
+          const dir = seg > segRef.current ? 1 : -1
+          segRef.current = seg
+          select(wrapIndex(seg, n), dir)
+        },
       })
-    }
-    window.addEventListener("wheel", onWheel, { passive: true })
-    stRef.current = trigger
-    return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener("wheel", onWheel)
-      trigger.kill()
-      stRef.current = null
-    }
+      // At the very top no scroll is left to fire onUpdate, so scrolling up there wraps round to the last dish.
+      // Deferred a frame so the browser's own wheel scroll has landed first.
+      let raf = 0
+      const onWheel = (e: WheelEvent) => {
+        if (overlayOpenRef.current) return
+        const y = trigger.scroll()
+        if (!loop || e.deltaY >= 0 || y < trigger.start - 1 || y > trigger.start + 1) return
+        cancelAnimationFrame(raf)
+        raf = requestAnimationFrame(() => {
+          segRef.current = n - 1
+          trigger.scroll(trigger.start + ((trigger.end - trigger.start) * (n - 1)) / steps)
+          select(n - 1, -1)
+        })
+      }
+      window.addEventListener("wheel", onWheel, { passive: true })
+      stRef.current = trigger
+      return () => {
+        cancelAnimationFrame(raf)
+        window.removeEventListener("wheel", onWheel)
+        trigger.kill()
+        stRef.current = null
+      }
+    })
+    return () => mm.revert()
   }, [steps, loop, n])
 
   useEffect(() => {
-    if (!searchOpen && !menuOpen) return
+    const win = winRef.current
+    if (!win || window.innerWidth >= 768) return
+    const activeBtn = win.querySelector<HTMLButtonElement>(".dsh-th .dsh-btn[aria-current='true']")
+    if (!activeBtn) return
+    const targetLeft = activeBtn.offsetLeft + activeBtn.offsetWidth / 2 - win.clientWidth / 2
+    win.scrollTo({
+      left: Math.max(0, targetLeft),
+      behavior: reducedRef.current ? "auto" : "smooth",
+    })
+  }, [index])
+
+  useEffect(() => {
+    const anyOpen = searchOpen || menuOpen || orderDish !== null || cartOpen
+    if (!anyOpen) return
     const raf = requestAnimationFrame(() => {
       if (searchOpen) searchInputRef.current?.focus()
       else if (menuOpen) drawerCloseRef.current?.focus()
@@ -464,7 +516,13 @@ export function DishOrbitCarousel({
     const onEsc = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return
       e.preventDefault()
-      if (menuOpen) {
+      if (orderDish !== null) {
+        setOrderDish(null)
+        requestAnimationFrame(() => orderBtnRef.current?.focus())
+      } else if (cartOpen) {
+        setCartOpen(false)
+        requestAnimationFrame(() => cartBtnRef.current?.focus())
+      } else if (menuOpen) {
         setMenuOpen(false)
         setMenuSection(null)
         requestAnimationFrame(() => menuBtnRef.current?.focus())
@@ -478,7 +536,7 @@ export function DishOrbitCarousel({
       cancelAnimationFrame(raf)
       window.removeEventListener("keydown", onEsc)
     }
-  }, [searchOpen, menuOpen])
+  }, [searchOpen, menuOpen, orderDish, cartOpen])
 
   // Buttons, keys and swipes jump to a dish and move the scroll to its stretch, so the two stay in step.
   const go = (to: number, dir?: 1 | -1) => {
@@ -497,17 +555,29 @@ export function DishOrbitCarousel({
   const step = (d: 1 | -1) => go(index + d, d)
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    if (searchOpen || menuOpen || (e.target as HTMLElement)?.tagName === "INPUT") return
+    if (searchOpen || menuOpen || orderDish !== null || cartOpen || (e.target as HTMLElement)?.tagName === "INPUT") return
     if (e.key === "ArrowRight") { e.preventDefault(); step(1) }
     else if (e.key === "ArrowLeft") { e.preventDefault(); step(-1) }
   }
-  const onPointerDown = (e: React.PointerEvent) => { swipe.current = { x: e.clientX, y: e.clientY } }
+  const onPointerDown = (e: React.PointerEvent) => {
+    swipe.current = { x: e.clientX, y: e.clientY, done: false }
+  }
+  const onPointerMove = (e: React.PointerEvent) => {
+    const s = swipe.current
+    if (!s || s.done) return
+    const dx = e.clientX - s.x
+    const dy = e.clientY - s.y
+    if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy) * 1.25) {
+      s.done = true
+      step(dx < 0 ? 1 : -1)
+    }
+  }
   const onPointerUp = (e: React.PointerEvent) => {
     const s = swipe.current
     swipe.current = null
-    if (!s) return
+    if (!s || s.done) return
     const dx = e.clientX - s.x
-    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(e.clientY - s.y) * 1.4) step(dx < 0 ? 1 : -1)
+    if (Math.abs(dx) > 32 && Math.abs(dx) > Math.abs(e.clientY - s.y) * 1.2) step(dx < 0 ? 1 : -1)
   }
 
   const start = stripStart(index, n, VISIBLE)
@@ -531,7 +601,18 @@ export function DishOrbitCarousel({
     requestAnimationFrame(() => menuBtnRef.current?.focus())
   }
 
+  const closeOrderModal = () => {
+    setOrderDish(null)
+    requestAnimationFrame(() => orderBtnRef.current?.focus())
+  }
+
+  const closeCart = () => {
+    setCartOpen(false)
+    requestAnimationFrame(() => cartBtnRef.current?.focus())
+  }
+
   return (
+    <>
     <div ref={trackRef} className={"dsh-trk" + (className ? " " + className : "")} style={{ height: "calc(" + height + " * " + (1 + steps * SCROLL_PER_DISH) + ")" }}>
     <div
       ref={rootRef}
@@ -571,10 +652,32 @@ export function DishOrbitCarousel({
             onClick={() => {
               setMenuOpen(false)
               setMenuSection(null)
+              setOrderDish(null)
+              setCartOpen(false)
               setSearchOpen((open) => !open)
             }}
           >
             {Icon.search}
+          </button>
+          <button
+            ref={cartBtnRef}
+            type="button"
+            className="dsh-btn dsh-cart-btn"
+            aria-label={`Open cart (${totalItems} ${totalItems === 1 ? "item" : "items"})`}
+            aria-expanded={cartOpen}
+            aria-controls={cartDrawerId}
+            onClick={() => {
+              setSearchOpen(false)
+              setMenuOpen(false)
+              setMenuSection(null)
+              setOrderDish(null)
+              setCartOpen((open) => !open)
+            }}
+          >
+            {Icon.cart}
+            <span className="dsh-cart-badge" data-empty={totalItems === 0 ? "true" : undefined}>
+              {totalItems}
+            </span>
           </button>
           <button
             ref={menuBtnRef}
@@ -585,6 +688,8 @@ export function DishOrbitCarousel({
             aria-controls={menuDrawerId}
             onClick={() => {
               setSearchOpen(false)
+              setOrderDish(null)
+              setCartOpen(false)
               setMenuOpen(true)
             }}
           >
@@ -601,7 +706,13 @@ export function DishOrbitCarousel({
           ))}
         </div>
 
-        <div className="dsh-plates" onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerCancel={() => (swipe.current = null)}>
+        <div
+          className="dsh-plates"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={() => (swipe.current = null)}
+        >
           {dishes.map((d, i) => (
             <div key={d.id} ref={(el) => { orbits.current[i] = el }} className="dsh-orbit" aria-hidden={i !== index}>
               <span className="dsh-ring">
@@ -627,7 +738,24 @@ export function DishOrbitCarousel({
 
         <div className="dsh-acts">
           <button type="button" className="dsh-btn" onClick={() => dish && onPlay?.(dish, index)}>{Icon.play}Play video</button>
-          <button type="button" className="dsh-btn" onClick={() => dish && onOrder?.(dish, index)}>{Icon.order}Order food</button>
+          <button
+            ref={orderBtnRef}
+            type="button"
+            className="dsh-btn"
+            aria-haspopup="dialog"
+            aria-expanded={orderDish !== null}
+            onClick={() => {
+              if (!dish) return
+              setSearchOpen(false)
+              setMenuOpen(false)
+              setMenuSection(null)
+              setCartOpen(false)
+              setOrderDish(dish)
+              onOrder?.(dish, index)
+            }}
+          >
+            {Icon.order}Order food
+          </button>
         </div>
 
         <div className="dsh-card">
@@ -673,7 +801,7 @@ export function DishOrbitCarousel({
           <button type="button" className="dsh-btn dsh-arrow" aria-label="Previous dish" onClick={() => step(-1)}>
             <svg viewBox="0 0 12 16" aria-hidden="true"><path d="M11 0v16L0 8z" /></svg>
           </button>
-          <div className="dsh-win">
+          <div ref={winRef} className="dsh-win">
             <div className="dsh-track" style={{ transform: "translateX(" + -start * ITEM + "px)" }}>
               {dishes.map((d, i) => (
                 <div key={d.id} className="dsh-th">
@@ -696,169 +824,184 @@ export function DishOrbitCarousel({
 
       </div>
       <p className="dsh-sr" aria-live="polite">{dish ? "Dish " + (index + 1) + " of " + n + ": " + dish.firstWord + " " + dish.secondWord : ""}</p>
-
-      <AnimatePresence>
-        {searchOpen ? (
-          <motion.div
-            key="search-overlay"
-            className="dsh-ovl-bd"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: prefersReduced ? 0 : 0.18 }}
-            onClick={closeSearch}
-          >
-            <motion.div
-              id={searchDialogId}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Search dishes"
-              className="dsh-srch-panel"
-              initial={prefersReduced ? { opacity: 1 } : { opacity: 0, y: -10, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={prefersReduced ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.98 }}
-              transition={{ duration: prefersReduced ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="dsh-srch-bar">
-                {Icon.search}
-                <input
-                  ref={searchInputRef}
-                  type="search"
-                  className="dsh-srch-input"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search dishes..."
-                  aria-label="Search dishes by name"
-                />
-                <button type="button" className="dsh-btn dsh-srch-close" aria-label="Close search" onClick={closeSearch}>
-                  {Icon.close}
-                </button>
-              </div>
-              {filteredDishes.length > 0 ? (
-                <ul className="dsh-srch-list" role="listbox" aria-label="Matching dishes">
-                  {filteredDishes.map(({ item, idx }) => (
-                    <li key={item.id}>
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={idx === index}
-                        aria-current={idx === index ? "true" : undefined}
-                        className="dsh-btn dsh-srch-item"
-                        onClick={() => {
-                          closeSearch()
-                          setQuery("")
-                          go(idx)
-                        }}
-                      >
-                        <span className="dsh-ring">
-                          <span className="dsh-crop">
-                            <img src={item.image} alt="" width={38} height={38} draggable={false} />
-                          </span>
-                        </span>
-                        <span className="dsh-srch-meta">
-                          <span className="dsh-srch-name">{item.firstWord} {item.secondWord}</span>
-                          <span className="dsh-srch-sub">{item.chef} · {item.rankLabel}</span>
-                        </span>
-                        <span className="dsh-srch-rate" style={{ background: `color-mix(in oklab, ${item.accent} 28%, transparent)` }}>{item.rating.toFixed(1)}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="dsh-srch-empty">No dishes found matching &ldquo;{query.trim()}&rdquo;.</p>
-              )}
-            </motion.div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {menuOpen ? (
-          <motion.div
-            key="side-menu"
-            className="dsh-drw-bd"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: prefersReduced ? 0 : 0.22 }}
-            onClick={closeMenu}
-          >
-            <motion.aside
-              id={menuDrawerId}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Navigation menu"
-              className="dsh-drw"
-              initial={prefersReduced ? { x: 0 } : { x: "100%" }}
-              animate={{ x: 0 }}
-              exit={prefersReduced ? { opacity: 0 } : { x: "100%" }}
-              transition={prefersReduced ? { duration: 0 } : { type: "spring", stiffness: 360, damping: 36 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="dsh-drw-hd">
-                <div className="dsh-drw-logo">
-                  <span className="dsh-brand-light">Desi</span>
-                  <span className="dsh-brand-bold">Bites</span>
-                </div>
-                <button ref={drawerCloseRef} type="button" className="dsh-btn dsh-drw-close" aria-label="Close menu" onClick={closeMenu}>
-                  {Icon.close}
-                </button>
-              </div>
-              <nav className="dsh-drw-nav" aria-label="Site navigation">
-                <a
-                  href="#menu"
-                  className="dsh-drw-link"
-                  aria-current={menuSection === null ? "page" : undefined}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    closeMenu()
-                  }}
-                >
-                  <span><strong>Menu</strong></span>
-                </a>
-                <a
-                  href="#about"
-                  className="dsh-drw-link"
-                  aria-current={menuSection === "about" ? "page" : undefined}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setMenuSection((prev) => (prev === "about" ? null : "about"))
-                  }}
-                >
-                  <span>About</span>
-                </a>
-                <a
-                  href="#contact"
-                  className="dsh-drw-link"
-                  aria-current={menuSection === "contact" ? "page" : undefined}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setMenuSection((prev) => (prev === "contact" ? null : "contact"))
-                  }}
-                >
-                  <span>Contact</span>
-                </a>
-              </nav>
-              {menuSection === "about" ? (
-                <div className="dsh-drw-info">
-                  <strong>About Desi Bites</strong>
-                  Featured Pakistani dishes prepared across our six demo kitchens, ranked by community likes.
-                </div>
-              ) : null}
-              {menuSection === "contact" ? (
-                <div className="dsh-drw-info">
-                  <strong>Contact</strong>
-                  Demo Kitchens One–Six · orders@desibites.example
-                </div>
-              ) : null}
-              <p className="dsh-drw-foot">Press Esc or click outside to close.</p>
-            </motion.aside>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
     </div>
     </div>
+
+    <AnimatePresence>
+      {searchOpen ? (
+        <motion.div
+          key="search-overlay"
+          className="dsh-ovl-bd"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: prefersReduced ? 0 : 0.18 }}
+          onClick={closeSearch}
+        >
+          <motion.div
+            id={searchDialogId}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Search dishes"
+            className="dsh-srch-panel"
+            initial={prefersReduced ? { opacity: 1 } : { opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={prefersReduced ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ duration: prefersReduced ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="dsh-srch-bar">
+              {Icon.search}
+              <input
+                ref={searchInputRef}
+                type="search"
+                className="dsh-srch-input"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search dishes..."
+                aria-label="Search dishes by name"
+              />
+              <button type="button" className="dsh-btn dsh-srch-close" aria-label="Close search" onClick={closeSearch}>
+                {Icon.close}
+              </button>
+            </div>
+            {filteredDishes.length > 0 ? (
+              <ul className="dsh-srch-list" role="listbox" aria-label="Matching dishes">
+                {filteredDishes.map(({ item, idx }) => (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={idx === index}
+                      aria-current={idx === index ? "true" : undefined}
+                      className="dsh-btn dsh-srch-item"
+                      onClick={() => {
+                        closeSearch()
+                        setQuery("")
+                        go(idx)
+                      }}
+                    >
+                      <span className="dsh-ring">
+                        <span className="dsh-crop">
+                          <img src={item.image} alt="" width={38} height={38} draggable={false} />
+                        </span>
+                      </span>
+                      <span className="dsh-srch-meta">
+                        <span className="dsh-srch-name">{item.firstWord} {item.secondWord}</span>
+                        <span className="dsh-srch-sub">{item.chef} · {item.rankLabel}</span>
+                      </span>
+                      <span className="dsh-srch-rate" style={{ background: `color-mix(in oklab, ${item.accent} 28%, transparent)` }}>{item.rating.toFixed(1)}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="dsh-srch-empty">No dishes found matching &ldquo;{query.trim()}&rdquo;.</p>
+            )}
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+
+    <AnimatePresence>
+      {menuOpen ? (
+        <motion.div
+          key="side-menu"
+          className="dsh-drw-bd"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: prefersReduced ? 0 : 0.22 }}
+          onClick={closeMenu}
+        >
+          <motion.aside
+            id={menuDrawerId}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation menu"
+            className="dsh-drw"
+            initial={prefersReduced ? { x: 0 } : { x: "100%" }}
+            animate={{ x: 0 }}
+            exit={prefersReduced ? { opacity: 0 } : { x: "100%" }}
+            transition={prefersReduced ? { duration: 0 } : { type: "spring", stiffness: 360, damping: 36 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="dsh-drw-hd">
+              <div className="dsh-drw-logo">
+                <span className="dsh-brand-light">Desi</span>
+                <span className="dsh-brand-bold">Bites</span>
+              </div>
+              <button ref={drawerCloseRef} type="button" className="dsh-btn dsh-drw-close" aria-label="Close menu" onClick={closeMenu}>
+                {Icon.close}
+              </button>
+            </div>
+            <nav className="dsh-drw-nav" aria-label="Site navigation">
+              <a
+                href="#menu"
+                className="dsh-drw-link"
+                aria-current={menuSection === null ? "page" : undefined}
+                onClick={(e) => {
+                  e.preventDefault()
+                  closeMenu()
+                }}
+              >
+                <span><strong>Menu</strong></span>
+              </a>
+              <a
+                href="#about"
+                className="dsh-drw-link"
+                aria-current={menuSection === "about" ? "page" : undefined}
+                onClick={(e) => {
+                  e.preventDefault()
+                  setMenuSection((prev) => (prev === "about" ? null : "about"))
+                }}
+              >
+                <span>About</span>
+              </a>
+              <a
+                href="#contact"
+                className="dsh-drw-link"
+                aria-current={menuSection === "contact" ? "page" : undefined}
+                onClick={(e) => {
+                  e.preventDefault()
+                  setMenuSection((prev) => (prev === "contact" ? null : "contact"))
+                }}
+              >
+                <span>Contact</span>
+              </a>
+            </nav>
+            {menuSection === "about" ? (
+              <div className="dsh-drw-info">
+                <strong>About Desi Bites</strong>
+                Featured Pakistani dishes prepared across our six demo kitchens, ranked by community likes.
+              </div>
+            ) : null}
+            {menuSection === "contact" ? (
+              <div className="dsh-drw-info">
+                <strong>Contact</strong>
+                Demo Kitchens One–Six · orders@desibites.example
+              </div>
+            ) : null}
+            <p className="dsh-drw-foot">Press Esc or click outside to close.</p>
+          </motion.aside>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+
+    <OrderFoodModal
+      dish={orderDish}
+      onClose={closeOrderModal}
+      onAddToCart={(selectedDish, qty) => {
+        addItem(selectedDish, qty)
+        closeOrderModal()
+      }}
+    />
+    <CartDrawer
+      id={cartDrawerId}
+      open={cartOpen}
+      onClose={closeCart}
+    />
+    </>
   )
 }
 
