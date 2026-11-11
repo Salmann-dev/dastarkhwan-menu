@@ -134,8 +134,10 @@ const CSS =
   ".dsh-dot{transition:height .45s cubic-bezier(.3,.7,.2,1)}" +
   ".dsh-plates{position:absolute;left:130px;top:82px;width:245px;height:245px;touch-action:pan-y}" +
   ".dsh-orbit{position:absolute;inset:0;transform-origin:69% -217%;visibility:hidden;will-change:transform}" +
-  ".dsh-orbit>img{display:block;width:245px;height:245px;max-width:none;object-fit:contain;user-select:none;-webkit-user-drag:none;" +
-  "filter:drop-shadow(0 16px 22px rgba(0,0,0,.2)) drop-shadow(0 3px 5px rgba(0,0,0,.12))}" +
+  ".dsh-ring{display:block;aspect-ratio:1/1;border-radius:50%}" +
+  ".dsh-crop{display:block;width:100%;height:100%;aspect-ratio:1/1;border-radius:50%;overflow:hidden;transform:translateZ(0)}" +
+  ".dsh-crop>img{display:block;width:100%;height:100%;max-width:none;object-fit:cover;transform:scale(1.24);transform-origin:center;user-select:none;-webkit-user-drag:none}" +
+  ".dsh-orbit>.dsh-ring{width:100%;height:100%;filter:drop-shadow(0 16px 22px rgba(0,0,0,.2)) drop-shadow(0 3px 5px rgba(0,0,0,.12))}" +
   ".dsh-head{position:absolute;left:388px;top:96px;width:330px;height:150px}" +
   ".dsh-hd{position:absolute;inset:0;visibility:hidden}" +
   ".dsh-eye{font-size:12.5px;font-weight:600;letter-spacing:.01em;margin:0 0 4px 2px}" +
@@ -178,9 +180,9 @@ const CSS =
   ".dsh-th{width:" + ITEM + "px;height:122px;display:flex;justify-content:center;padding-top:3px}" +
   ".dsh-th .dsh-btn{width:80px;height:116px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:7px;padding-top:9px;transition:background .45s}" +
   ".dsh-th .dsh-btn[aria-current]{background:color-mix(in oklab,var(--color-background) 62%,transparent);box-shadow:0 10px 24px -16px rgba(0,0,0,.3)}" +
-  ".dsh-th img{width:56px;height:56px;max-width:none;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.18));transition:transform .45s}" +
-  ".dsh-th .dsh-btn[aria-current] img{transform:scale(1.06)}" +
-  ".dsh-th span{font-size:10px;line-height:1.25;text-align:center;font-weight:500;color:color-mix(in oklab,var(--color-foreground) 78%,transparent);max-width:78px}" +
+  ".dsh-th .dsh-ring{width:56px;height:56px;flex:none;filter:drop-shadow(0 4px 6px rgba(0,0,0,.18));transition:transform .45s}" +
+  ".dsh-th .dsh-btn[aria-current] .dsh-ring{transform:scale(1.06)}" +
+  ".dsh-th-lbl{font-size:10px;line-height:1.25;text-align:center;font-weight:500;color:color-mix(in oklab,var(--color-foreground) 78%,transparent);max-width:78px}" +
   ".dsh-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}" +
   "@container (max-width:639px){" +
   ".dsh-canvas{position:relative;left:auto;top:auto;width:100%;height:auto;transform:none;display:flex;flex-direction:column;align-items:center;padding:14px 16px 18px}" +
@@ -188,7 +190,6 @@ const CSS =
   ".dsh-top{position:relative;left:auto;top:auto;align-self:flex-end}" +
   ".dsh-pager{left:14px;top:150px}" +
   ".dsh-plates{position:relative;left:auto;top:auto;width:min(52vw,32svh);height:min(52vw,32svh);margin-top:0}" +
-  ".dsh-orbit>img{width:100%;height:100%}" +
   ".dsh-head{position:relative;left:auto;top:auto;width:100%;height:132px;margin-top:10px}" +
   ".dsh-hd{text-align:center;transform:scale(.78);transform-origin:50% 0}" +
   ".dsh-acts{position:relative;left:auto;top:auto;margin-top:4px}" +
@@ -196,7 +197,7 @@ const CSS =
   // phone: the pinned stage has to fit one screen; the pager, swipes and scroll cover the strip
   ".dsh-strip{display:none}" +
   "}" +
-  "@media (prefers-reduced-motion:reduce){.dsh-track,.dsh-dot,.dsh-dot i,.dsh-th .dsh-btn,.dsh-th img,.dsh-like{transition:none}}"
+  "@media (prefers-reduced-motion:reduce){.dsh-track,.dsh-dot,.dsh-dot i,.dsh-th .dsh-btn,.dsh-th .dsh-ring,.dsh-like{transition:none}}"
 
 const HIDE_1 = "inset(0% 0% 0% 100%)" // thin line: wipes in from the right
 const HIDE_2 = "inset(0% 100% 0% 0%)" // heavy line: wipes in from the left
@@ -466,7 +467,11 @@ export function DishOrbitCarousel({
         <div className="dsh-plates" onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerCancel={() => (swipe.current = null)}>
           {dishes.map((d, i) => (
             <div key={d.id} ref={(el) => { orbits.current[i] = el }} className="dsh-orbit" aria-hidden={i !== index}>
-              <img src={d.image} alt={d.firstWord + " " + d.secondWord} width={245} height={245} draggable={false} />
+              <span className="dsh-ring">
+                <span className="dsh-crop">
+                  <img src={d.image} alt={d.firstWord + " " + d.secondWord} width={245} height={245} draggable={false} />
+                </span>
+              </span>
             </div>
           ))}
         </div>
@@ -536,8 +541,12 @@ export function DishOrbitCarousel({
               {dishes.map((d, i) => (
                 <div key={d.id} className="dsh-th">
                   <button type="button" className="dsh-btn" aria-current={i === index ? "true" : undefined} onClick={() => go(i)}>
-                    <img src={d.image} alt="" width={56} height={56} draggable={false} />
-                    <span>{d.firstWord + " " + d.secondWord}</span>
+                    <span className="dsh-ring">
+                      <span className="dsh-crop">
+                        <img src={d.image} alt="" width={56} height={56} draggable={false} />
+                      </span>
+                    </span>
+                    <span className="dsh-th-lbl">{d.firstWord + " " + d.secondWord}</span>
                   </button>
                 </div>
               ))}
